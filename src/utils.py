@@ -22,3 +22,7 @@ def upsample_dataarray(
         method="nearest",
         kwargs={"fill_value": "extrapolate"},
     )
+
+
+def thousands_space(x, pos):
+    return f"{x:,.0f}".replace(",", " ")
