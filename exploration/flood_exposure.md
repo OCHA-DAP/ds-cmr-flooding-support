@@ -30,9 +30,9 @@ from src.constants import ADM1_FLOOD_PCODES
 ```
 
 ```python
-worldpop.aggregate_worldpop_to_adm(admin_level=3)
-worldpop.aggregate_worldpop_to_adm(admin_level=2)
-worldpop.aggregate_worldpop_to_adm(admin_level=1)
+# worldpop.aggregate_worldpop_to_adm(admin_level=3)
+# worldpop.aggregate_worldpop_to_adm(admin_level=2)
+# worldpop.aggregate_worldpop_to_adm(admin_level=1)
 ```
 
 ```python
@@ -44,14 +44,15 @@ worldpop.aggregate_worldpop_to_adm(admin_level=1)
 ```
 
 ```python
-for admin_level in range(1, 4):
-    floodscan.calculate_adm_exposures(admin_level=admin_level)
+# for admin_level in range(1, 4):
+#     floodscan.calculate_adm_exposures(admin_level=admin_level)
 ```
 
 ```python
 adm3 = codab.load_codab(admin_level=3)
 adm2 = codab.load_codab(admin_level=2)
 adm3_aoi = adm3[adm3["ADM1_PCODE"].isin(ADM1_FLOOD_PCODES)]
+adm2_aoi = adm2[adm2["ADM1_PCODE"].isin(ADM1_FLOOD_PCODES)]
 adm3_aoi_en = adm3[adm3["ADM1_PCODE"] == "CM004"]
 ```
 

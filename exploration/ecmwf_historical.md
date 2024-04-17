@@ -29,6 +29,12 @@ from src.utils import upsample_dataarray
 ```
 
 ```python
+DATE_LT_STR = "m4-l456"
+PUB_MONTH_STR = "avril"
+VALID_MONTHS_STR = "juillet-août-septembre"
+```
+
+```python
 # codab.download_codab()
 ```
 
@@ -49,7 +55,25 @@ print(adm2.total_bounds)
 ```
 
 ```python
-ec_members = ecmwf.load_ecmwf_m1l456()
+date_lt_str = "m4-l456"
+ec_members = ecmwf.load_ecmwf_specific_cmr(DATE_LT_STR)
+```
+
+```python
+ec_members["latitude"].values
+```
+
+```python
+ec_members["longitude"].values
+```
+
+```python
+ec_members
+```
+
+```python
+ax = adm2.boundary.plot(color="k")
+ec_members["tprate"].isel(number=0, time=0, step=0).plot(ax=ax)
 ```
 
 ```python
@@ -73,7 +97,7 @@ ec_adm = ec_year_up.rio.clip(adm2.geometry, all_touched=True)
 ```
 
 ```python
-ec_adm
+ec_anom = (ec_adm - ec_adm.mean(dim="year")) / ec_adm.mean(dim="year") * 100
 ```
 
 ```python
@@ -85,7 +109,20 @@ ec_adm.sel(year=2024).plot(
 ax.axis("off")
 ax.set_title(
     f"Prévisions ECMWF 2024 Cameroun\n"
-    f"mois de publication: mars,\npériode d'interêt: juin-juillet-août"
+    f"mois de publication: {PUB_MONTH_STR},\npériode d'interêt: {VALID_MONTHS_STR}"
+)
+
+fig, ax = plt.subplots(figsize=(10, 5))
+adm2.boundary.plot(ax=ax, color="k", linewidth=0.5)
+ec_anom.sel(year=2024).plot(
+    ax=ax,
+    cmap="RdBu",
+    cbar_kwargs={"label": "Anomalie de précipitations totales prévues (%)"},
+)
+ax.axis("off")
+ax.set_title(
+    f"Prévisions ECMWF 2024 Cameroun\n"
+    f"mois de publication: {PUB_MONTH_STR},\npériode d'interêt: {VALID_MONTHS_STR}"
 )
 
 df_adm = (
@@ -114,21 +151,12 @@ ax.annotate(
     ha="left",
     va="center",
 )
-# for year, row in df_adm.set_index("year").iterrows():
-#     tp = row["tprate"]
-#     if tp > thresh:
-#         ax.annotate(
-#             year,
-#             xy=(year, tp),
-#             color="grey",
-#             ha="center",
-#             va="bottom",
-#         )
+
 ax.set_xlabel("Année")
 ax.set_ylabel("Précipitations totales prévues,\nmoyenne sur tout pays (mm)")
 ax.set_title(
     f"Prévisions ECMWF historiques Cameroun\n"
-    f"mois de publication: mars, période d'interêt: juin-juillet-août"
+    f"mois de publication: {PUB_MONTH_STR}, période d'interêt: {VALID_MONTHS_STR}"
 )
 ax.spines["top"].set_visible(False)
 ax.spines["right"].set_visible(False)
@@ -150,7 +178,7 @@ rp_2023, val_2023, per_2023 = df_adm.set_index("year").loc[2024][
 ax.plot(rp_2023, val_2023, "r.")
 annotation = (
     f" 2024:\n Période ret. = {rp_2023:.1f} ans\n "
-"Valeur = {val_2023:.0f} mm\n Centile = {per_2023:.2f}"
+    f"Valeur = {val_2023:.0f} mm\n Centile = {per_2023:.2f}"
 )
 ax.annotate(
     annotation,
@@ -161,7 +189,7 @@ ax.annotate(
 )
 ax.set_title(
     "Période de retour de prévisions ECMWF Cameroun\n"
-    "mois de publication: mars, période d'interêt: juin-juillet-août"
+    f"mois de publication: {PUB_MONTH_STR}, période d'interêt: {VALID_MONTHS_STR}"
 )
 ax.set_xlabel("Période de retour (ans)")
 ax.set_ylabel("Précipitations totales prévues,\nmoyenne sur tout pays (mm)")
@@ -169,7 +197,8 @@ ax.spines["top"].set_visible(False)
 ax.spines["right"].set_visible(False)
 ax.autoscale(enable=True, axis="both", tight=True)
 ax.set_xlim(1, 10)
-ax.set_ylim(top=665)
+# ax.set_ylim(top=665)
+ax.set_ylim(top=719)
 ax.get_legend().remove()
 ```
 
@@ -178,7 +207,7 @@ df_adm
 ```
 
 ```python
-filename = "cmr_ecmwf_m3l456_ranks.csv"
+filename = f"cmr_ecmwf_{DATE_LT_STR}_ranks.csv"
 df_adm.to_csv(ecmwf.ECMWF_PROC_DIR / filename, index=False)
 ```
 
