@@ -30,8 +30,8 @@ from src.datasources import ecmwf, impact, floodscan, codab
 ```
 
 ```python
-DATE_LT_STR = "m4-l456"
-PUB_MONTH_STR = "avril"
+DATE_LT_STR = "m5-l345"
+PUB_MONTH_STR = "mai"
 VALID_MONTHS_STR = "juillet-août-septembre"
 ```
 
@@ -110,7 +110,7 @@ fs_2024_plot
 ```
 
 ```python
-fig, ax = plt.subplots(figsize=(8, 8))
+fig, ax = plt.subplots(figsize=(8, 8), dpi=300)
 
 fs_2024_plot[fs_2024_plot["mid_imp"] > 0].plot(
     column="mid_imp", cmap="Reds", legend=True, ax=ax
