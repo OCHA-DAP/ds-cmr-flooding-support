@@ -29,8 +29,8 @@ from src.utils import upsample_dataarray
 ```
 
 ```python
-DATE_LT_STR = "m5-l345"
-PUB_MONTH_STR = "mai"
+DATE_LT_STR = "m7-l123"
+PUB_MONTH_STR = "juillet"
 VALID_MONTHS_STR = "juillet-août-septembre"
 ```
 

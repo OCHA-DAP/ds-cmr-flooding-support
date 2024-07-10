@@ -13,7 +13,7 @@ jupyter:
     name: ds-cmr-flooding-support
 ---
 
-# ECMWF historical - Extrême-Nord only
+# ECMWF historical
 
 ```python
 %load_ext jupyter_black
@@ -24,9 +24,8 @@ jupyter:
 ```python
 import matplotlib.pyplot as plt
 
-from src.datasources import codab, ecmwf
+from src.datasources import codab, ecmwf, watersheds
 from src.utils import upsample_dataarray
-from src.constants import *
 ```
 
 ```python
@@ -40,8 +39,7 @@ VALID_MONTHS_STR = "juillet-août-septembre"
 ```
 
 ```python
-adm2 = codab.load_codab(admin_level=2)
-adm2 = adm2[adm2["ADM1_PCODE"] == EXTREMENORD]
+adm2 = watersheds.load_logone_chari()
 ```
 
 ```python
@@ -49,7 +47,29 @@ adm2.plot()
 ```
 
 ```python
-ec_members = ecmwf.load_ecmwf_specific_cmr(DATE_LT_STR)
+lon_min, lat_min, lon_max, lat_max = adm2.total_bounds
+```
+
+```python
+print(adm2.total_bounds)
+```
+
+```python
+ec_members = ecmwf.load_ecmwf_specific_cmr(
+    date_lt_str=DATE_LT_STR, area_str="logone-chari"
+)
+```
+
+```python
+ec_members["latitude"].values
+```
+
+```python
+ec_members["longitude"].values
+```
+
+```python
+ec_members
 ```
 
 ```python
@@ -66,6 +86,10 @@ ec_year *= 3600 * 24 * 1000 * 30
 ```
 
 ```python
+ec_year.mean(dim=["latitude", "longitude"]).plot()
+```
+
+```python
 ec_year_up = upsample_dataarray(ec_year)
 ```
 
@@ -78,33 +102,27 @@ ec_anom = (ec_adm - ec_adm.mean(dim="year")) / ec_adm.mean(dim="year") * 100
 ```
 
 ```python
-area_str = "Extrême-Nord"
-
 fig, ax = plt.subplots(figsize=(10, 5), dpi=300)
-adm2.boundary.plot(ax=ax, color="white", linewidth=0.5)
+adm2.boundary.plot(ax=ax, color="white", linewidth=1)
 ec_adm.sel(year=2024).plot(
     ax=ax, cbar_kwargs={"label": "Précipitations totales prévues (mm)"}
 )
 ax.axis("off")
 ax.set_title(
-    f"Prévisions ECMWF 2024 {area_str}\n"
+    f"Prévisions ECMWF 2024 Logone et Chari\n"
     f"mois de publication: {PUB_MONTH_STR},\npériode d'interêt: {VALID_MONTHS_STR}"
 )
 
 fig, ax = plt.subplots(figsize=(10, 5), dpi=300)
-adm2.boundary.plot(ax=ax, color="k", linewidth=0.5)
-vmax = ec_anom.sel(year=2024).max()
-vmin = -vmax
+adm2.boundary.plot(ax=ax, color="k", linewidth=1)
 ec_anom.sel(year=2024).plot(
     ax=ax,
     cmap="RdBu",
-    vmin=vmin,
-    vmax=vmax,
     cbar_kwargs={"label": "Anomalie de précipitations totales prévues (%)"},
 )
 ax.axis("off")
 ax.set_title(
-    f"Prévisions ECMWF 2024 {area_str}\n"
+    f"Prévisions ECMWF 2024 Logone et Chari\n"
     f"mois de publication: {PUB_MONTH_STR},\npériode d'interêt: {VALID_MONTHS_STR}"
 )
 
@@ -117,14 +135,12 @@ df_adm = (
 thresh = df_adm["tprate"].quantile(2 / 3)
 
 fig, ax = plt.subplots(dpi=300)
-df_adm.plot(
-    x="year", y="tprate", ax=ax, legend=False, linewidth=1, color="dodgerblue"
-)
-ax.plot([2024], [df_adm.iloc[-1]["tprate"]], ".", color="crimson")
+df_adm.plot(x="year", y="tprate", ax=ax, legend=False, linewidth=1)
+ax.plot([2024], [df_adm.iloc[-1]["tprate"]], ".r")
 ax.annotate(
     "2024",
     xy=(2024, df_adm.iloc[-1]["tprate"]),
-    color="crimson",
+    color="red",
     ha="center",
     va="top",
 )
@@ -138,9 +154,9 @@ ax.annotate(
 )
 
 ax.set_xlabel("Année")
-ax.set_ylabel(f"Précipitations totales prévues,\nmoyenne sur {area_str} (mm)")
+ax.set_ylabel("Précipitations totales prévues,\nmoyenne sur tout pays (mm)")
 ax.set_title(
-    f"Prévisions ECMWF historiques {area_str}\n"
+    f"Prévisions ECMWF historiques Logone et Chari\n"
     f"mois de publication: {PUB_MONTH_STR}, période d'interêt: {VALID_MONTHS_STR}"
 )
 ax.spines["top"].set_visible(False)
@@ -155,12 +171,12 @@ df_adm["rp"] = len(df_adm) / df_adm["rank"]
 
 ```python
 fig, ax = plt.subplots(dpi=300)
-df_adm.sort_values("rp").plot(x="rp", y="tprate", ax=ax, color="dodgerblue")
+df_adm.sort_values("rp").plot(x="rp", y="tprate", ax=ax)
 
 rp_2023, val_2023, per_2023 = df_adm.set_index("year").loc[2024][
     ["rp", "tprate", "percentile"]
 ]
-ax.plot(rp_2023, val_2023, ".", color="crimson")
+ax.plot(rp_2023, val_2023, "r.")
 annotation = (
     f" 2024:\n Période ret. = {rp_2023:.1f} ans\n "
     f"Valeur = {val_2023:.0f} mm\n Centile = {per_2023:.2f}"
@@ -168,21 +184,21 @@ annotation = (
 ax.annotate(
     annotation,
     (rp_2023, val_2023),
-    color="crimson",
+    color="red",
     va="top",
     ha="left",
 )
 ax.set_title(
-    f"Période de retour de prévisions ECMWF {area_str}\n"
+    "Période de retour de prévisions ECMWF Logone et Chari\n"
     f"mois de publication: {PUB_MONTH_STR}, période d'interêt: {VALID_MONTHS_STR}"
 )
 ax.set_xlabel("Période de retour (ans)")
-ax.set_ylabel(f"Précipitations totales prévues,\nmoyenne sur {area_str} (mm)")
+ax.set_ylabel("Précipitations totales prévues,\nmoyenne sur tout pays (mm)")
 ax.spines["top"].set_visible(False)
 ax.spines["right"].set_visible(False)
 ax.autoscale(enable=True, axis="both", tight=True)
 ax.set_xlim(1, 10)
-ax.set_ylim(top=580)
+ax.set_ylim(top=730)
 ax.get_legend().remove()
 ```
 
@@ -191,7 +207,7 @@ df_adm
 ```
 
 ```python
-filename = f"cmr_ecmwf_{DATE_LT_STR}_extremenord_ranks.csv"
+filename = f"cmr_ecmwf_{DATE_LT_STR}_logone-chari_ranks.csv"
 df_adm.to_csv(ecmwf.ECMWF_PROC_DIR / filename, index=False)
 ```
 
