@@ -79,6 +79,18 @@ def load_csv_from_blob(
     return pd.read_csv(io.BytesIO(blob_data), **kwargs)
 
 
+def load_xlsx_from_blob(
+    blob_name,
+    prod_dev: Literal["prod", "dev"] = "dev",
+    container_name: str = "projects",
+    **kwargs,
+):
+    blob_data = load_blob_data(
+        blob_name, prod_dev=prod_dev, container_name=container_name
+    )
+    return pd.read_excel(io.BytesIO(blob_data), **kwargs)
+
+
 def upload_gdf_to_blob(
     gdf, blob_name, prod_dev: Literal["prod", "dev"] = "dev"
 ):

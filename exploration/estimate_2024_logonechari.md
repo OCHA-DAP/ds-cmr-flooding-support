@@ -25,8 +25,10 @@ jupyter:
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 
 from src.datasources import ecmwf, impact, floodscan, codab, watersheds
+from src.constants import *
 ```
 
 ```python
@@ -99,10 +101,6 @@ fs_2024 = fs_2024.drop(columns=["total_exposed", "year"]).reset_index()
 ```
 
 ```python
-fs_2024[fs_2024["low_exp"] > 0]
-```
-
-```python
 fs_2024_plot = adm2.merge(fs_2024, on="ADM2_PCODE")
 ```
 
@@ -111,6 +109,7 @@ fs_2024_plot
 ```
 
 ```python
+# plotting impact
 fig, ax = plt.subplots(figsize=(8, 8), dpi=300)
 
 fs_2024_plot[fs_2024_plot["mid_imp"] > 0].plot(
@@ -126,12 +125,7 @@ ax.axis("off")
 ```
 
 ```python
-fs_2024_plot[fs_2024_plot["low_imp"] > 0].plot(
-    column="low_imp", cmap="Purples", legend=True
-)
-```
-
-```python
+# table impact
 cols = [
     # "ADM1_PCODE",
     "ADM1_FR",
@@ -154,6 +148,60 @@ fs_2024_plot.sort_values("high_imp", ascending=False)[cols].iloc[:].rename(
 ).style.background_gradient(cmap="Reds").format(
     "{:,.0f}", subset=[low_label, high_label]
 )
+```
+
+```python
+# plotting exposure
+fig, ax = plt.subplots(figsize=(8, 8), dpi=300)
+
+fs_2024_plot[fs_2024_plot["mid_exp"] > 0].plot(
+    column="mid_exp", cmap="Purples", legend=True, ax=ax
+)
+adm2.boundary.plot(ax=ax, linewidth=0.5, color="k")
+ax.set_title(
+    "Prévision moyenne de population exposée aux inondations en 2024,\n"
+    f"basée sur prévisions ECMWF de {PUB_MONTH_STR} pour {VALID_MONTHS_STR}"
+)
+cbar = ax.get_figure().get_axes()[1]
+
+
+def thousands_formatter(x, pos):
+    return "{:,.0f}".format(x).replace(",", " ")
+
+
+cbar.yaxis.set_major_formatter(FuncFormatter(thousands_formatter))
+
+ax.axis("off")
+```
+
+```python
+# table impact
+cols = [
+    # "ADM1_PCODE",
+    "ADM1_FR",
+    # "ADM2_PCODE",
+    "ADM2_FR",
+    # "total_pop",
+    "low_exp",
+    "high_exp",
+    # "geometry",
+]
+low_label = "Est. exposée bas"
+high_label = "Est. exposée haut"
+fs_2024_plot.sort_values("high_exp", ascending=False)[cols].iloc[:].rename(
+    columns={
+        "low_exp": low_label,
+        "high_exp": high_label,
+        "ADM1_FR": "Région",
+        "ADM2_FR": "Département",
+    }
+).style.background_gradient(cmap="Purples").format(
+    "{:,.0f}", subset=[low_label, high_label]
+)
+```
+
+```python
+# Logone-et-Chari and Mayo-Danay only
 ```
 
 ```python

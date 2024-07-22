@@ -2,7 +2,7 @@ from src import blob
 
 
 def load_watersheds(shapefile: str = "watersheds.shp"):
-    blob_name = f"{blob.PROJECT_PREFIX}/raw/LCB shapefiles.zip"
+    blob_name = f"{blob.PROJECT_PREFIX}/raw/wfp/LCB shapefiles.zip"
     return blob.load_gdf_from_blob(blob_name, shapefile=shapefile)
 
 

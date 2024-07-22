@@ -31,19 +31,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.datasources import iri, codab
+from src.datasources import iri, codab, watersheds
 from src import constants
 from src.utils import upsample_dataarray
 ```
 
 ```python
-DATE_LT_STR = "m5-l345"
-PUB_MONTH_STR = "mai"
+DATE_LT_STR = "m7-l123"
+PUB_MONTH_STR = "juillet"
 VALID_MONTHS_STR = "juillet-août-septembre"
 ```
 
 ```python
 adm2 = codab.load_codab(admin_level=2)
+```
+
+```python
+adm2 = watersheds.load_logone_chari()
 ```
 
 ```python
@@ -99,6 +103,10 @@ da_adm.isel(year=-1).plot()
 ```
 
 ```python
+da_adm
+```
+
+```python
 fig, ax = plt.subplots(figsize=(10, 5), dpi=300)
 adm2.boundary.plot(ax=ax, color="black", linewidth=0.5)
 
@@ -151,4 +159,8 @@ ax.set_title(
 )
 ax.spines["top"].set_visible(False)
 ax.spines["right"].set_visible(False)
+```
+
+```python
+
 ```

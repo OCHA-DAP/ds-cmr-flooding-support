@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from src.datasources import worldpop, codab, floodscan
-from src.constants import ADM1_FLOOD_PCODES
+from src.constants import *
 ```
 
 ```python
@@ -116,6 +116,16 @@ avg_exposure_plot_aoi3 = avg_exposure_plot3[
 avg_exposure_plot_aoi_en3 = avg_exposure_plot3[
     avg_exposure_plot3["ADM1_PCODE"] == "CM004"
 ]
+```
+
+```python
+exposure1 = floodscan.load_adm_flood_exposures(admin_level=1)
+```
+
+```python
+exposure1[exposure1["ADM1_PCODE"].isin(ADM1_FLOOD_PCODES)].groupby("year")[
+    "total_exposed"
+].sum().plot()
 ```
 
 ```python
