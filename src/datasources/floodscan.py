@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Literal
 
 import pandas as pd
 import xarray as xr
@@ -46,9 +47,11 @@ def load_raw_cmr_floodscan():
     return da
 
 
-def calculate_exposure_raster():
+def calculate_exposure_raster(filter_months=None):
     pop = worldpop.load_raw_worldpop()
     da = load_raw_cmr_floodscan()
+    if filter_months is not None:
+        da = da.sel(time=da["time.month"].isin(filter_months))
     da_year = da.groupby("time.year").max()
     da_year_mask = da_year.where(da_year >= 0.05)
     da_year_mask = da_year_mask.rio.write_crs(4326)
@@ -58,12 +61,17 @@ def calculate_exposure_raster():
         da_year_mask_resample <= 1
     )
     exposure = da_year_mask_resample * pop.isel(band=0)
-    exposure.to_netcdf(PROC_FS_EXP_PATH)
+    save_path = (
+        PROC_FS_EXP_PATH
+        if filter_months is None
+        else PROC_FS_DIR / f"cmr_flood_exposure_{filter_months}.nc"
+    )
+    exposure.to_netcdf(save_path)
 
 
-def calculate_adm_exposures(admin_level: int = 2):
+def calculate_adm_exposures(admin_level: int = 2, filter_months=None):
     adm = codab.load_codab(admin_level=admin_level)
-    exposure = load_raster_flood_exposures()
+    exposure = load_raster_flood_exposures(filter_months=filter_months)
 
     dfs = []
     for _, row in adm.iterrows():
@@ -78,14 +86,51 @@ def calculate_adm_exposures(admin_level: int = 2):
         dfs.append(dff)
 
     df = pd.concat(dfs, ignore_index=True)
-    filename = f"cmr_adm{admin_level}_count_flood_exposed.csv"
+    filename = (
+        f"cmr_adm{admin_level}_count_flood_exposed.csv"
+        if filter_months is None
+        else f"cmr_adm{admin_level}_count_flood_exposed_{filter_months}.csv"
+    )
     df.to_csv(PROC_FS_DIR / filename, index=False)
 
 
-def load_raster_flood_exposures():
-    return xr.open_dataarray(PROC_FS_EXP_PATH)
+def load_raster_flood_exposures(filter_months=None):
+    if filter_months is not None:
+        file_path = PROC_FS_DIR / f"cmr_flood_exposure_{filter_months}.nc"
+    else:
+        file_path = PROC_FS_EXP_PATH
+    return xr.open_dataarray(file_path)
 
 
-def load_adm_flood_exposures(admin_level: int = 2):
-    filename = f"cmr_adm{admin_level}_count_flood_exposed.csv"
+def load_adm_flood_exposures(admin_level: int = 2, filter_months=None):
+    if filter_months is not None:
+        filename = (
+            f"cmr_adm{admin_level}_count_flood_exposed_{filter_months}.csv"
+        )
+    else:
+        filename = f"cmr_adm{admin_level}_count_flood_exposed.csv"
     return pd.read_csv(PROC_FS_DIR / filename)
+
+
+def get_blob_name(
+    iso3: str,
+    data_type: Literal["exposure_raster", "exposure_tabular"],
+    date: str = None,
+):
+    if data_type == "exposure_raster":
+        if date is None:
+            raise ValueError("date must be provided for exposure data")
+        return (
+            f"ds-floodexposure-monitoring/processed/flood_exposure/"
+            f"{iso3}/{iso3}_exposure_{date}.tif"
+        )
+    elif data_type == "exposure_tabular":
+        return (
+            f"ds-floodexposure-monitoring/processed/flood_exposure/tabular/"
+            f"{iso3}_adm_flood_exposure.parquet"
+        )
+    elif data_type == "flood_extent":
+        return (
+            f"ds-floodexposure-monitoring/processed/flood_extent/"
+            f"{iso3}_flood_extent.tif"
+        )

@@ -7,6 +7,7 @@ from typing import Literal
 
 import geopandas as gpd
 import pandas as pd
+import rioxarray as rxr
 from azure.storage.blob import ContainerClient, ContentSettings
 
 PROD_BLOB_SAS = os.getenv("PROD_BLOB_SAS")
@@ -187,3 +188,29 @@ def list_container_blobs(
             name_starts_with=name_starts_with
         )
     ]
+
+
+def open_blob_cog(
+    blob_name,
+    stage: Literal["prod", "dev"] = "dev",
+    container_name: str = "projects",
+    chunks=None,
+):
+    cog_url = get_blob_url(
+        blob_name, stage=stage, container_name=container_name
+    )
+    if chunks is None:
+        chunks = True
+    return rxr.open_rasterio(cog_url, chunks=chunks)
+
+
+def get_blob_url(
+    blob_name,
+    stage: Literal["prod", "dev"] = "dev",
+    container_name: str = "projects",
+):
+    container_client = get_container_client(
+        prod_dev=stage, container_name=container_name
+    )
+    blob_client = container_client.get_blob_client(blob_name)
+    return blob_client.url

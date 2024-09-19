@@ -10,11 +10,21 @@ IMPACT_RAW_DIR = DATA_DIR / "public" / "raw" / "cmr" / "ocha"
 IMPACT_2022_PATH = (
     IMPACT_RAW_DIR / "cmr_exno_data_inondationlc_md_mt_v1.0_20221206.xlsx"
 )
+IMPACT_2024_RAW_PATH = (
+    IMPACT_RAW_DIR / "cmr_ocha_data_Inondation_2024_20240915.xlsx"
+)
 IMPACT_PROC_DIR = DATA_DIR / "public" / "processed" / "cmr" / "ocha"
 IMPACT_PROC_PATH = (
     IMPACT_PROC_DIR
     / "cmr_exno_data_inondationlc_md_mt_v1.0_20221206_processed.csv"
 )
+
+
+def load_impact_2024():
+    df = pd.read_excel(IMPACT_2024_RAW_PATH, sheet_name="admin2")
+    df = df.dropna(subset=["adm3_pcode"])
+    df = df.rename(columns={"adm3_pcode": "ADM3_PCODE"})
+    return df
 
 
 def load_raw_impact_2022():
