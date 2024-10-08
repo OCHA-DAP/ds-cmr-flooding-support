@@ -95,8 +95,7 @@ def open_ecmwf_rasters_from_blob(
 
 
 def get_blob_name(month: int, leadtime: int, year: int):
-    provider = "aws" if year == 2024 else "mars"
     return (
-        f"seas5/{provider}/processed/tprate_em_i{year}-"
+        f"seas5/monthly/processed/precip_em_i{year}-"
         f"{month:02d}-01_lt{leadtime}.tif"
     )
