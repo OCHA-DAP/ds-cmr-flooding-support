@@ -30,9 +30,9 @@ from src.utils import upsample_dataarray
 ```
 
 ```python
-DATE_LT_STR = "m9-l12"
-PUB_MONTH_STR = "septembre"
-VALID_MONTHS_STR = "septembre-octobre-novembre"
+DATE_LT_STR = "m10-l01"
+PUB_MONTH_STR = "octobre"
+VALID_MONTHS_STR = "octobre-novembre"
 ```
 
 ```python
@@ -40,9 +40,10 @@ adm2 = watersheds.load_logone_chari()
 ```
 
 ```python
-valid_months = [9, 10, 11]
+valid_months = [10, 11]
+issue_months = [10]
 ec = ecmwf.open_ecmwf_rasters_from_blob(
-    issue_months=[9], valid_months=valid_months
+    issue_months=issue_months, valid_months=valid_months
 )
 ```
 
@@ -61,6 +62,10 @@ ec_clip
 ```
 
 ```python
+ec_clip = ec_clip.persist()
+```
+
+```python
 ec_mean = ec_clip.mean(dim=["x", "y"])
 ```
 
@@ -75,14 +80,14 @@ ec_df
 ```
 
 ```python
-filename = f"cmr_ecmwf_{valid_months}_logone-chari_ranks.csv"
+filename = f"cmr_ecmwf_i{issue_months}_v{valid_months}_logone-chari_ranks.csv"
 ec_df.to_csv(ecmwf.ECMWF_PROC_DIR / filename, index=False)
 ```
 
 ## Plotting
 
 ```python
-ec_adm = ec_clip * 3600 * 24 * 1000 * 30
+ec_adm = ec_clip * 30
 ```
 
 ```python
@@ -91,14 +96,6 @@ ec_adm.isel(year=0).plot()
 
 ```python
 ec_anom = (ec_adm - ec_adm.mean(dim="year")) / ec_adm.mean(dim="year") * 100
-```
-
-```python
-ec_anom.isel(year=-4).plot()
-```
-
-```python
-float(ec_anom.sel(year=2024).max())
 ```
 
 ```python
@@ -169,6 +166,10 @@ ax.spines["right"].set_visible(False)
 df_adm["rank"] = df_adm["tprate"].rank(ascending=False).astype(int)
 df_adm["percentile"] = df_adm["tprate"].rank(ascending=True, pct=True)
 df_adm["rp"] = len(df_adm) / df_adm["rank"]
+```
+
+```python
+df_adm.sort_values("rp")
 ```
 
 ```python

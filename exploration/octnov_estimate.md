@@ -13,7 +13,7 @@ jupyter:
     name: ds-cmr-flooding-support
 ---
 
-# Sep-Oct-Nov estimate
+# Oct-Nov estimate
 
 ```python
 %load_ext jupyter_black
@@ -32,9 +32,12 @@ from src.constants import *
 ```
 
 ```python
-DATE_LT_STR = "m9-l012"
-PUB_MONTH_STR = "septembre"
-VALID_MONTHS_STR = "septembre-octobre-novembre"
+DATE_LT_STR = "m10-l01"
+PUB_MONTH_STR = "octobtre"
+VALID_MONTHS_STR = "octobre-novembre"
+
+issue_months = [10]
+valid_months = [10, 11]
 ```
 
 ```python
@@ -42,7 +45,7 @@ adm2 = codab.load_codab(admin_level=2)
 ```
 
 ```python
-filter_months = [9, 10, 11]
+filter_months = [10, 11]
 ```
 
 ```python
@@ -68,7 +71,7 @@ fs[fs["ADM2_PCODE"] == LOGONE_CHARI]
 ```
 
 ```python
-filename = f"cmr_ecmwf_{filter_months}_logone-chari_ranks.csv"
+filename = f"cmr_ecmwf_i{issue_months}_v{valid_months}_logone-chari_ranks.csv"
 ec = pd.read_csv(ecmwf.ECMWF_PROC_DIR / filename)
 ```
 
