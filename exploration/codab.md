@@ -47,7 +47,7 @@ adm_aoi = adm[adm["ADM1_PCODE"] == EXTREMENORD]
 ```
 
 ```python
-adm_aoi
+adm_aoi.columns
 ```
 
 ```python

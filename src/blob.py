@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 import zipfile
+from pathlib import Path
 from typing import Literal
 
 import geopandas as gpd
@@ -17,11 +18,11 @@ PROJECT_PREFIX = "ds-cmr-flooding-support"
 
 
 def get_container_client(
-    container_name: str = "projects", prod_dev: Literal["prod", "dev"] = "dev"
+    container_name: str = "projects", stage: Literal["prod", "dev"] = "dev"
 ):
-    sas = DEV_BLOB_SAS if prod_dev == "dev" else PROD_BLOB_SAS
+    sas = DEV_BLOB_SAS if stage == "dev" else PROD_BLOB_SAS
     container_url = (
-        f"https://imb0chd0{prod_dev}.blob.core.windows.net/"
+        f"https://imb0chd0{stage}.blob.core.windows.net/"
         f"{container_name}?{sas}"
     )
     return ContainerClient.from_container_url(container_url)
@@ -30,24 +31,24 @@ def get_container_client(
 def upload_parquet_to_blob(
     blob_name,
     df,
-    prod_dev: Literal["prod", "dev"] = "dev",
+    stage: Literal["prod", "dev"] = "dev",
     container_name: str = "projects",
 ):
     upload_blob_data(
         blob_name,
         df.to_parquet(),
-        prod_dev=prod_dev,
+        stage=stage,
         container_name=container_name,
     )
 
 
 def load_parquet_from_blob(
     blob_name,
-    prod_dev: Literal["prod", "dev"] = "dev",
+    stage: Literal["prod", "dev"] = "dev",
     container_name: str = "projects",
 ):
     blob_data = load_blob_data(
-        blob_name, prod_dev=prod_dev, container_name=container_name
+        blob_name, stage=stage, container_name=container_name
     )
     return pd.read_parquet(io.BytesIO(blob_data))
 
@@ -55,14 +56,14 @@ def load_parquet_from_blob(
 def upload_csv_to_blob(
     blob_name,
     df,
-    prod_dev: Literal["prod", "dev"] = "dev",
+    stage: Literal["prod", "dev"] = "dev",
     container_name: str = "projects",
     **kwargs,
 ):
     upload_blob_data(
         blob_name,
         df.to_csv(index=False, **kwargs),
-        prod_dev=prod_dev,
+        stage=stage,
         content_type="text/csv",
         container_name=container_name,
     )
@@ -70,30 +71,33 @@ def upload_csv_to_blob(
 
 def load_csv_from_blob(
     blob_name,
-    prod_dev: Literal["prod", "dev"] = "dev",
+    stage: Literal["prod", "dev"] = "dev",
     container_name: str = "projects",
     **kwargs,
 ):
     blob_data = load_blob_data(
-        blob_name, prod_dev=prod_dev, container_name=container_name
+        blob_name, stage=stage, container_name=container_name
     )
     return pd.read_csv(io.BytesIO(blob_data), **kwargs)
 
 
 def load_xlsx_from_blob(
     blob_name,
-    prod_dev: Literal["prod", "dev"] = "dev",
+    stage: Literal["prod", "dev"] = "dev",
     container_name: str = "projects",
     **kwargs,
 ):
     blob_data = load_blob_data(
-        blob_name, prod_dev=prod_dev, container_name=container_name
+        blob_name, stage=stage, container_name=container_name
     )
     return pd.read_excel(io.BytesIO(blob_data), **kwargs)
 
 
 def upload_gdf_to_blob(
-    gdf, blob_name, prod_dev: Literal["prod", "dev"] = "dev"
+    gdf,
+    blob_name,
+    stage: Literal["prod", "dev"] = "dev",
+    container_name: str = "projects",
 ):
     with tempfile.TemporaryDirectory() as temp_dir:
         # File paths for shapefile components within the temp directory
@@ -112,25 +116,51 @@ def upload_gdf_to_blob(
 
         # Upload the buffer content as a blob
         with open(full_zip_path, "rb") as data:
-            upload_blob_data(blob_name, data, prod_dev=prod_dev)
+            upload_blob_data(
+                blob_name, data, stage=stage, container_name=container_name
+            )
 
 
 def load_gdf_from_blob(
-    blob_name, shapefile: str = None, prod_dev: Literal["prod", "dev"] = "dev"
+    blob_name,
+    shapefile: str = None,
+    stage: Literal["prod", "dev"] = "dev",
+    container_name: str = "projects",
+    clobber: bool = False,
+    verbose: bool = False,
 ):
-    blob_data = load_blob_data(blob_name, prod_dev=prod_dev)
-    with zipfile.ZipFile(io.BytesIO(blob_data), "r") as zip_ref:
-        zip_ref.extractall("temp")
-        if shapefile is None:
-            shapefile = [f for f in zip_ref.namelist() if f.endswith(".shp")][
-                0
-            ]
-        gdf = gpd.read_file(f"temp/{shapefile}")
+    local_temp_dir = Path(f"temp/{blob_name}")
+    if not clobber and os.path.exists(local_temp_dir):
+        if verbose:
+            print(f"{local_temp_dir} already exists, skipping download")
+    else:
+        blob_data = load_blob_data(
+            blob_name, stage=stage, container_name=container_name
+        )
+        with zipfile.ZipFile(io.BytesIO(blob_data), "r") as zip_ref:
+            zip_ref.extractall(local_temp_dir)
+    if shapefile is None:
+        if verbose:
+            print("shapefile not specified, using first .shp file found")
+            print("iterating over all subdirectories")
+        for root, dirs, files in os.walk(local_temp_dir):
+            for file in files:
+                if verbose:
+                    print(f"checking {file}")
+                if file.endswith(".shp"):
+                    shapefile = file
+                    break
+            if shapefile is not None:
+                break
+    local_temp_path = local_temp_dir / shapefile
+    if not local_temp_path.exists():
+        local_temp_path = local_temp_dir / shapefile.removesuffix(".shp")
+    gdf = gpd.read_file(local_temp_path)
     return gdf
 
 
 def list_zip_shps(blob_name, prod_dev: Literal["prod", "dev"] = "dev"):
-    blob_data = load_blob_data(blob_name, prod_dev=prod_dev)
+    blob_data = load_blob_data(blob_name, stage=prod_dev)
     with zipfile.ZipFile(io.BytesIO(blob_data), "r") as zip_ref:
         zip_ref.extractall("temp")
         shps = [f for f in zip_ref.namelist() if f.endswith(".shp")]
@@ -139,11 +169,11 @@ def list_zip_shps(blob_name, prod_dev: Literal["prod", "dev"] = "dev"):
 
 def load_blob_data(
     blob_name,
-    prod_dev: Literal["prod", "dev"] = "dev",
+    stage: Literal["prod", "dev"] = "dev",
     container_name: str = "projects",
 ):
     container_client = get_container_client(
-        prod_dev=prod_dev, container_name=container_name
+        stage=stage, container_name=container_name
     )
     blob_client = container_client.get_blob_client(blob_name)
     data = blob_client.download_blob().readall()
@@ -153,12 +183,12 @@ def load_blob_data(
 def upload_blob_data(
     blob_name,
     data,
-    prod_dev: Literal["prod", "dev"] = "dev",
+    stage: Literal["prod", "dev"] = "dev",
     container_name: str = "projects",
     content_type: str = None,
 ):
     container_client = get_container_client(
-        prod_dev=prod_dev, container_name=container_name
+        stage=stage, container_name=container_name
     )
 
     if content_type is None:
@@ -180,7 +210,7 @@ def list_container_blobs(
     container_name: str = "projects",
 ):
     container_client = get_container_client(
-        prod_dev=prod_dev, container_name=container_name
+        stage=prod_dev, container_name=container_name
     )
     return [
         blob.name
@@ -210,7 +240,7 @@ def get_blob_url(
     container_name: str = "projects",
 ):
     container_client = get_container_client(
-        prod_dev=stage, container_name=container_name
+        stage=stage, container_name=container_name
     )
     blob_client = container_client.get_blob_client(blob_name)
     return blob_client.url

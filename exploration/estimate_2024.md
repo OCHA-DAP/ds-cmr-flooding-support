@@ -27,12 +27,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from src.datasources import ecmwf, impact, floodscan, codab
+from src.constants import *
 ```
 
 ```python
-DATE_LT_STR = "m5-l345"
-PUB_MONTH_STR = "mai"
-VALID_MONTHS_STR = "juillet-août-septembre"
+DATE_LT_STR = "m3l456"
+DATE_LT_STR = "m3l456"
+PUB_MONTH_STR = "mars"
+# VALID_MONTHS_STR = "juillet-août-septembre"
+VALID_MONTHS_STR = "juin-juillet-août"
 ```
 
 ```python
@@ -153,6 +156,21 @@ fs_2024_plot.sort_values("high_imp", ascending=False)[cols].iloc[:].rename(
 ).style.background_gradient(cmap="Reds").format(
     "{:,.0f}", subset=[low_label, high_label]
 )
+```
+
+```python
+# for Kate
+
+print(f'country: {fs_2024_plot["mid_exp"].sum():,}')
+print(
+    f'Extreme-Nord: {fs_2024_plot[fs_2024_plot["ADM1_PCODE"] == EXTREMENORD]["mid_exp"].sum():,}'
+)
+```
+
+```python
+fs_2024_plot.groupby(["ADM2_FR", "ADM2_PCODE"])[
+    "mid_exp"
+].sum().reset_index().sort_values("mid_exp", ascending=False)
 ```
 
 ```python

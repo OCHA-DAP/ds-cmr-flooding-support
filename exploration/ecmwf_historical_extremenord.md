@@ -30,9 +30,12 @@ from src.constants import *
 ```
 
 ```python
-DATE_LT_STR = "m7-l123"
-PUB_MONTH_STR = "juillet"
-VALID_MONTHS_STR = "juillet-août-septembre"
+# DATE_LT_STR = "m7-l123"
+DATE_LT_STR = "m3-l456"
+# PUB_MONTH_STR = "juillet"
+PUB_MONTH_STR = "mars"
+# VALID_MONTHS_STR = "juillet-août-septembre"
+VALID_MONTHS_STR = "juin-juillet-août"
 ```
 
 ```python

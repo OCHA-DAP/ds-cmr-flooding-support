@@ -79,6 +79,10 @@ combined.plot()
 ```
 
 ```python
+combined.dissolve().plot()
+```
+
+```python
 combined.total_bounds
 ```
 

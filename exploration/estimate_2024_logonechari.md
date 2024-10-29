@@ -201,9 +201,16 @@ fs_2024_plot.sort_values("high_exp", ascending=False)[cols].iloc[:].rename(
 ```
 
 ```python
-# Logone-et-Chari and Mayo-Danay only
+# for Kate
+
+print(f'country: {fs_2024_plot["mid_exp"].sum():,}')
+print(
+    f'Extreme-Nord: {fs_2024_plot[fs_2024_plot["ADM1_PCODE"] == EXTREMENORD]["mid_exp"].sum():,}'
+)
 ```
 
 ```python
-
+fs_2024_plot[fs_2024_plot["ADM1_PCODE"] == EXTREMENORD].groupby(
+    ["ADM2_FR", "ADM2_PCODE"]
+)["mid_exp"].sum().reset_index().sort_values("mid_exp", ascending=False)
 ```

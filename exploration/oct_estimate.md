@@ -46,11 +46,11 @@ filter_months = [9, 10, 11]
 ```
 
 ```python
-floodscan.calculate_exposure_raster(filter_months=filter_months)
+# floodscan.calculate_exposure_raster(filter_months=filter_months)
 ```
 
 ```python
-floodscan.calculate_adm_exposures(filter_months=filter_months)
+# floodscan.calculate_adm_exposures(filter_months=filter_months)
 ```
 
 ```python
@@ -153,6 +153,21 @@ fs_2024_plot.sort_values("mid_exp", ascending=False)[cols].iloc[:].rename(
 ).format(
     "{:,.0f}", subset=[low_label, mid_label, high_label]
 )
+```
+
+```python
+# for Kate
+
+print(f'country: {fs_2024_plot["mid_exp"].sum():,}')
+print(
+    f'Extreme-Nord: {fs_2024_plot[fs_2024_plot["ADM1_PCODE"] == EXTREMENORD]["mid_exp"].sum():,}'
+)
+```
+
+```python
+fs_2024_plot.groupby(["ADM2_FR", "ADM2_PCODE"])[
+    "mid_exp"
+].sum().reset_index().sort_values("mid_exp", ascending=False)
 ```
 
 ```python
