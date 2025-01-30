@@ -83,6 +83,10 @@ print(high_percentile, low_percentile)
 ```
 
 ```python
+fs
+```
+
+```python
 fs_2024 = fs.groupby("ADM2_PCODE").first()
 
 for per, per_label in zip(
