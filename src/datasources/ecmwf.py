@@ -62,7 +62,7 @@ def open_ecmwf_rasters_from_blob(
     if valid_months is None:
         valid_months = range(1, 13)
     if issue_years is None:
-        issue_years = range(1981, 2025)
+        issue_years = range(1981, 2026)
     das = []
     for year in tqdm(issue_years):
         for month in issue_months:
