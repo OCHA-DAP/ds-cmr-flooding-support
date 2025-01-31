@@ -87,5 +87,14 @@ blob.upload_parquet_to_blob(blob_name, df_era5)
 ```
 
 ```python
+fig, ax = plt.subplots(dpi=200)
 
+df_era5.groupby("month")["mean"].mean().plot.bar(ax=ax, color="dodgerblue")
+
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+
+ax.set_xlabel("Mois")
+ax.set_ylabel("Précipitations moyennes historiques\n(mm / jour)")
+ax.set_title("Précipitations saisonnières sur les bassins Logone et Chari")
 ```
