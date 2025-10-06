@@ -39,7 +39,11 @@ MAYO_DANAY
 ```
 
 ```python
-adm = codab.load_codab(admin_level=3)
+codab.download_codab_to_blob()
+```
+
+```python
+adm = codab.load_codab_from_blob(admin_level=3)
 ```
 
 ```python
@@ -52,6 +56,10 @@ adm_aoi.columns
 
 ```python
 adm_aoi.plot()
+```
+
+```python
+adm_aoi.total_bounds
 ```
 
 ```python

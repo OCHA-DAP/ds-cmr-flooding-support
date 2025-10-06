@@ -26,7 +26,7 @@ Validation of raster stats from Postgres DB
 ```python
 import pandas as pd
 
-from src.datasources import codab, ecmwf
+from src.datasources import codab, seas5
 from src.utils import upsample_dataarray
 from src.constants import *
 ```

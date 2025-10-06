@@ -27,6 +27,7 @@ import pandas as pd
 
 from src.datasources import watersheds, codab
 from src import blob
+from src.constants import *
 ```
 
 ```python
@@ -34,7 +35,14 @@ blob.list_zip_shps(f"{blob.PROJECT_PREFIX}/raw/LCB shapefiles.zip")
 ```
 
 ```python
-adm = codab.load_codab()
+adm1 = codab.load_codab(admin_level=1)
+adm1 = adm1[adm1["ADM1_PCODE"] == EXTREMENORD]
+adm2 = codab.load_codab(admin_level=2)
+adm2 = adm2[adm2["ADM1_PCODE"] == EXTREMENORD]
+```
+
+```python
+adm1
 ```
 
 ```python
@@ -69,9 +77,12 @@ blob.upload_gdf_to_blob(
 ```
 
 ```python
-fig, ax = plt.subplots()
-adm.boundary.plot(ax=ax)
-combined.boundary.plot(ax=ax, color="red")
+fig, ax = plt.subplots(dpi=200)
+adm1.boundary.plot(ax=ax, color="k", linewidth=1)
+adm2.boundary.plot(ax=ax, color="k", linewidth=0.5)
+combined.boundary.plot(ax=ax, color="dodgerblue", linewidth=1)
+combined.plot(ax=ax, color="dodgerblue", alpha=0.2)
+ax.axis("off")
 ```
 
 ```python
@@ -87,9 +98,5 @@ combined.total_bounds
 ```
 
 ```python
-test = watersheds.load_logone_chari()
-```
 
-```python
-test.plot()
 ```
