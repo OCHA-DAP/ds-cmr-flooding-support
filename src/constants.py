@@ -20,3 +20,7 @@ FRENCH_MONTHS = {
     "Nov": "nov.",
     "Dec": "déc.",
 }
+
+CERF_YEARS = [2012, 2024]
+
+ISO3 = "cmr"

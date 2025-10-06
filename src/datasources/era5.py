@@ -1,3 +1,5 @@
+import ocha_stratus as stratus
+import pandas as pd
 import xarray as xr
 from rasterio import RasterioIOError
 from tqdm.auto import tqdm
@@ -44,3 +46,10 @@ def get_blob_name(month: int, year: int):
         f"era5/monthly/processed/precip_reanalysis_v{year}-"
         f"{month:02d}-01.tif"
     )
+
+
+def load_era5(pcode: str = "SS"):
+    engine = stratus.get_engine("prod")
+    query = f"SELECT * FROM public.era5 WHERE pcode = '{pcode}' "
+    df = pd.read_sql(query, engine, parse_dates=["valid_date"])
+    return df

@@ -24,7 +24,7 @@ jupyter:
 ```python
 import matplotlib.pyplot as plt
 
-from src.datasources import ecmwf, watersheds
+from src.datasources import seas5, watersheds
 from src import blob
 from src.utils import upsample_dataarray
 ```

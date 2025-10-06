@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+import ocha_stratus as stratus
+import pandas as pd
 import xarray as xr
 from tqdm.auto import tqdm
 
@@ -92,6 +94,18 @@ def open_ecmwf_rasters_from_blob(
                     das.append(da_in)
     da = xr.combine_by_coords(das, combine_attrs="drop_conflicts")
     return da
+
+
+def load_seas5(pcode: str):
+    engine = stratus.get_engine("prod")
+    query = "SELECT * FROM public.seas5 WHERE pcode = %s"
+    df = pd.read_sql(
+        query,
+        engine,
+        params=(pcode,),
+        parse_dates=["valid_date", "issued_date"],
+    )
+    return df
 
 
 def get_blob_name(month: int, leadtime: int, year: int):

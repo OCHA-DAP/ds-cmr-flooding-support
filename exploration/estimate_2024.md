@@ -26,7 +26,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from src.datasources import ecmwf, impact, floodscan, codab
+from src.datasources import seas5, impact, floodscan, codab
 from src.constants import *
 ```
 
